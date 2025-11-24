@@ -21,3 +21,11 @@
         .maplibregl-popup {
             max-width: 200px;
         }
+
+        /* body,
+        html,
+        #map {
+            background: black;
+            background-image: url("./image/space.jpg");
+            background-size: cover;
+        } */

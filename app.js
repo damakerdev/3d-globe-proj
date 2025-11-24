@@ -1,8 +1,34 @@
-const monument = [-77.0353, 38.8895];
+const locations = [
+    // {
+    // coords: [longitude, latitude],
+    // text: "Popup text here"
+    // },
+    {
+        coords: [-77.0353, 38.8895],
+        text: "Washington Monument — Built in 1848."
+    },
+    {
+        coords: [2.2945, 48.8584],
+        text: "Eiffel Tower — Built in 1889."
+    },
+    {
+        coords: [139.6917, 35.6895],
+        text: "Tokyo — Capital of Japan."
+    },
+    {
+        coords: [151.2153, -33.8568],
+        text: "Sydney Opera House — Opened in 1973."
+    },
+    {
+        coords: [85.3240, 27.7172],
+        text: "Kathmandu - Capital of Nepal."
+    }
+];
 
 const map = new maplibregl.Map({
     container: 'map',
-    style: 'https://demotiles.maplibre.org/style.json',
+    // style: 'https://demotiles.maplibre.org/style.json',
+    style: './map.json',
     zoom: 2,
     center: [80, 20],
 });
@@ -26,8 +52,8 @@ function rotateGlobe() {
 
     // rotate ONLY if user is not controlling it,
     // popup is not open, and 2 sec passed after they stop
-    if (!userInteracting && !popupOpen && now - lastInteractionTime > 300) {
-        const speed = 0.02;
+    if (!userInteracting && !popupOpen && now - lastInteractionTime > 150) {
+        const speed = 0.04;
         const c = map.getCenter();
         map.setCenter([c.lng + speed, c.lat]);
     }
@@ -58,34 +84,52 @@ map.on("touchstart", stopRotationTemporarily);
 map.on("touchend", resumeRotationSoon);
 
 // Start rotating
-map.on("load", () => {
-    rotateGlobe();
+// map.on("load", () => {
+//     rotateGlobe();
+// });
+
+map.on('load', () => {
+    map.loadImage('./image/space.jpg', (error, image) => {
+        if (error) throw error;
+
+        map.addImage('stars', image);
+
+        // Add background layer with the star image
+        map.addLayer({
+            id: 'space-background',
+            type: 'background',
+            paint: {
+                'background-pattern': 'stars'
+            }
+        });
+    });
+
+    rotateGlobe(); // start rotation
 });
 
 // ------------------------------
-// MARKER + POPUP
+// MULTIPLE MARKERS + POPUPS
 // ------------------------------
 
-const popup = new maplibregl.Popup({ offset: 25 })
-    .setText('Construction on the Washington Monument began in 1848.');
+locations.forEach(loc => {
+    const popup = new maplibregl.Popup({ offset: 25 })
+        .setText(loc.text);
 
-// STOP rotation when popup opens
-popup.on('open', () => {
-    popupOpen = true;
-    stopRotationTemporarily();
+    popup.on('open', () => {
+        popupOpen = true;
+        stopRotationTemporarily();
+    });
+
+    popup.on('close', () => {
+        popupOpen = false;
+        resumeRotationSoon();
+    });
+
+    const el = document.createElement('div');
+    el.id = 'marker';
+
+    new maplibregl.Marker({ element: el })
+        .setLngLat(loc.coords)
+        .setPopup(popup)
+        .addTo(map);
 });
-
-// RESUME when popup closes
-popup.on('close', () => {
-    popupOpen = false;
-    resumeRotationSoon();
-});
-
-const el = document.createElement('div');
-el.id = 'marker';
-
-new maplibregl.Marker({ element: el })
-    .setLngLat(monument)
-    .setPopup(popup)
-    .addTo(map);
-
