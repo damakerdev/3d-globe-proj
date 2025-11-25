@@ -27,19 +27,51 @@ const locations = [
 
 // const map = new maplibregl.Map({
 //     container: 'map',
+//     zoom: 0,
+//     center: [137.9150899566626, 36.25956997955441],
 //     // style: 'https://demotiles.maplibre.org/style.json',
-//     style: './map.json',
+//     // style: "https://api.protomaps.com/styles/v5/light/en.json?key=d6d2a44f6f976d85",
+//     style: "https://cdn.jsdelivr.net/gh/openmaptiles/osm-bright-gl-style@v1.11/style.json"
 
-//     zoom: 2,
-//     center: [80, 20],
 // });
 
 const map = new maplibregl.Map({
     container: 'map',
-    zoom: 0,
-    center: [137.9150899566626, 36.25956997955441],
-    style: 'https://demotiles.maplibre.org/style.json',
-
+    style: {
+        version: 8,
+        sources: {
+            'satellite': {
+                type: 'raster',
+                tiles: [
+                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                ],
+                tileSize: 256,
+                attribution: '&copy; Esri, Earthstar Geographics'
+            }
+        },
+        layers: [
+            {
+                id: 'background',
+                type: 'background',
+                paint: {
+                    'background-color': '#020409'
+                }
+            },
+            {
+                id: 'satellite-layer',
+                type: 'raster',
+                source: 'satellite',
+                paint: {
+                    'raster-opacity': 1,
+                    'raster-fade-duration': 300
+                }
+            }
+        ]
+    },
+    center: [-98, 39],
+    zoom: 1.5,
+    projection: 'globe',
+    attributionControl: false
 });
 
 
@@ -88,7 +120,6 @@ map.on("mouseup", resumeRotationSoon);
 map.on("dragstart", stopRotationTemporarily);
 map.on("dragend", resumeRotationSoon);
 
-// REMOVE: map.on("wheel", stopRotationTemporarily); 
 // ADD: The following 4 lines to handle zooming and tilting (pitch) correctly
 map.on("zoomstart", stopRotationTemporarily);
 map.on("zoomend", resumeRotationSoon);
